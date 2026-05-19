@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HR Controlling – Interaktives Lerntool Tag 4</title>
+<style>
+:root {
+  --bg:#0d1b2a;--bg2:#1a2d42;--bg3:#162236;--gold:#C9A55A;--gold2:#e0be7a;
+  --white:#ffffff;--muted:#8faabb;--correct:#4caf7d;--wrong:#e05252;
+  --border:#2a4060;--card:#1e3249;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--white);min-height:100vh;}
+.site-header{background:linear-gradient(135deg,#0a1520 0%,#1a2d42 100%);border-bottom:2px solid var(--gold);padding:18px 32px;display:flex;align-items:center;justify-content:space-between;}
+.site-header h1{font-size:1.25rem;font-weight:700;color:var(--gold);}
+.site-header .sub{font-size:0.78rem;color:var(--muted);margin-top:2px;}
+.powered{font-size:0.72rem;color:var(--gold);opacity:0.8;text-align:right;}
+.global-progress{background:var(--border);height:4px;}
+.global-progress-fill{height:4px;background:linear-gradient(90deg,var(--gold),var(--gold2));transition:width 0.5s;width:0%;}
+.screen{display:none;}.screen.active{display:block;}
+.home-container{max-width:900px;margin:0 auto;padding:40px 24px;}
+.home-title{text-align:center;margin-bottom:10px;}
+.home-title h2{font-size:1.6rem;color:var(--gold);}
+.home-title p{color:var(--muted);margin-top:8px;font-size:0.92rem;}
+.stats-bar{display:flex;gap:16px;justify-content:center;margin:28px 0;flex-wrap:wrap;align-items:flex-start;}
+.stat-box{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 24px;text-align:center;}
+.stat-box .num{font-size:1.8rem;font-weight:700;color:var(--gold);}
+.stat-box .lbl{font-size:0.75rem;color:var(--muted);margin-top:4px;}
+.btn-reset{background:transparent;border:1.5px solid #e05252;color:#e05252;padding:9px 20px;border-radius:9px;font-size:0.82rem;font-weight:600;cursor:pointer;transition:all 0.2s;}
+.btn-reset:hover{background:rgba(224,82,82,0.1);}
+.reset-confirm{display:none;background:var(--card);border:1px solid #e05252;border-radius:10px;padding:16px 20px;margin-top:12px;font-size:0.88rem;}
+.reset-confirm p{color:#cdd8e8;margin-bottom:12px;}
+.reset-confirm-btns{display:flex;gap:10px;}
+.modules-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;}
+.module-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;}
+.module-card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 6px 20px rgba(201,165,90,0.15);}
+.module-card .badge{font-size:0.68rem;font-weight:700;padding:3px 10px;border-radius:20px;margin-bottom:10px;display:inline-block;}
+.badge-b1{background:#1e3d6e;color:#7fb3ff;}
+.badge-b2{background:#1a3d2a;color:#7fd4a8;}
+.badge-b3{background:#3d2a0a;color:var(--gold2);}
+.module-card h3{font-size:0.95rem;font-weight:600;margin-bottom:8px;}
+.module-card .desc{font-size:0.78rem;color:var(--muted);line-height:1.5;}
+.module-card .progress-row{display:flex;align-items:center;gap:10px;margin-top:14px;}
+.mini-bar{flex:1;height:4px;background:var(--border);border-radius:2px;}
+.mini-bar-fill{height:4px;border-radius:2px;background:var(--gold);transition:width 0.4s;}
+.module-card .pct{font-size:0.72rem;color:var(--muted);}
+.module-card .done-badge{position:absolute;top:14px;right:14px;font-size:0.7rem;background:var(--correct);color:white;padding:2px 8px;border-radius:10px;}
+.module-container{max-width:780px;margin:0 auto;padding:32px 24px;}
+.module-nav{display:flex;align-items:center;gap:14px;margin-bottom:28px;}
+.btn-back{background:transparent;border:1px solid var(--border);color:var(--muted);padding:8px 16px;border-radius:8px;cursor:pointer;font-size:0.82rem;transition:all 0.2s;}
+.btn-back:hover{border-color:var(--gold);color:var(--gold);}
+.module-progress-text{color:var(--muted);font-size:0.82rem;margin-left:auto;}
+.task-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:28px;margin-bottom:20px;}
+.task-type-label{font-size:0.68rem;font-weight:700;letter-spacing:1px;color:var(--gold);text-transform:uppercase;margin-bottom:12px;}
+.task-question{font-size:1.0rem;font-weight:500;line-height:1.6;margin-bottom:20px;}
+.task-hint{font-size:0.78rem;color:var(--muted);font-style:italic;margin-bottom:16px;}
+.options-list{display:flex;flex-direction:column;gap:10px;}
+.option-btn{background:var(--bg2);border:1.5px solid var(--border);border-radius:10px;padding:14px 18px;text-align:left;cursor:pointer;color:var(--white);font-size:0.9rem;line-height:1.5;transition:all 0.2s;width:100%;}
+.option-btn:hover:not(:disabled){border-color:var(--gold);background:#1e3249;}
+.option-btn.selected{border-color:var(--gold);background:#2a3d1a;}
+.option-btn.correct{border-color:var(--correct);background:rgba(76,175,125,0.15);}
+.option-btn.wrong{border-color:var(--wrong);background:rgba(224,82,82,0.15);}
+.option-btn:disabled{cursor:default;}
+.option-feedback{font-size:0.78rem;margin-top:6px;padding:8px 12px;border-radius:6px;}
+.option-feedback.ok{background:rgba(76,175,125,0.1);color:#7fd4a8;border-left:3px solid var(--correct);}
+.option-feedback.nok{background:rgba(224,82,82,0.1);color:#f59595;border-left:3px solid var(--wrong);}
+.tf-row{display:flex;gap:16px;margin-top:8px;}
+.tf-btn{flex:1;padding:16px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg2);color:var(--white);cursor:pointer;font-size:1rem;font-weight:600;transition:all 0.2s;}
+.tf-btn:hover:not(:disabled){border-color:var(--gold);}
+.tf-btn.correct{border-color:var(--correct);background:rgba(76,175,125,0.15);}
+.tf-btn.wrong{border-color:var(--wrong);background:rgba(224,82,82,0.15);}
+.matching-area{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.match-left,.match-right{display:flex;flex-direction:column;gap:8px;}
+.match-item{padding:12px 14px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg2);font-size:0.85rem;cursor:pointer;transition:all 0.2s;line-height:1.4;}
+.match-item.selected{border-color:var(--gold);background:#2a3a50;}
+.match-item.matched-ok{border-color:var(--correct);background:rgba(76,175,125,0.12);cursor:default;}
+.match-item.matched-nok{border-color:var(--wrong);background:rgba(224,82,82,0.12);}
+.blank-input{background:var(--bg2);border:1.5px solid var(--border);color:var(--white);padding:12px 16px;border-radius:8px;font-size:0.95rem;width:100%;margin-top:10px;outline:none;transition:border-color 0.2s;}
+.blank-input:focus{border-color:var(--gold);}
+.blank-input.ok{border-color:var(--correct);}
+.blank-input.nok{border-color:var(--wrong);}
+.calc-steps{display:flex;flex-direction:column;gap:14px;}
+.calc-step{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:16px 18px;}
+.calc-step .step-label{font-size:0.75rem;color:var(--gold);font-weight:700;margin-bottom:8px;letter-spacing:0.5px;}
+.calc-step .step-desc{font-size:0.88rem;color:var(--muted);margin-bottom:10px;line-height:1.5;}
+.calc-step input{background:var(--bg2);border:1.5px solid var(--border);color:var(--white);padding:10px 14px;border-radius:7px;font-size:0.92rem;width:200px;outline:none;}
+.calc-step input.ok{border-color:var(--correct);}
+.calc-step input.nok{border-color:var(--wrong);}
+.calc-step .step-feedback{font-size:0.8rem;margin-top:8px;padding:7px 10px;border-radius:6px;}
+.scenario-box{background:var(--bg3);border-left:3px solid var(--gold);padding:16px 18px;border-radius:0 10px 10px 0;margin-bottom:18px;font-size:0.9rem;line-height:1.7;color:#cdd8e8;}
+.reflection-textarea{width:100%;background:var(--bg2);border:1.5px solid var(--border);color:var(--white);padding:14px;border-radius:8px;font-size:0.88rem;line-height:1.6;resize:vertical;min-height:100px;outline:none;font-family:inherit;}
+.reflection-textarea:focus{border-color:var(--gold);}
+.model-answer{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:18px;margin-top:16px;font-size:0.88rem;line-height:1.7;color:#cdd8e8;display:none;}
+.model-answer .model-label{font-size:0.72rem;color:var(--gold);font-weight:700;letter-spacing:1px;margin-bottom:8px;}
+.self-rating{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;}
+.self-btn{padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--muted);cursor:pointer;font-size:0.82rem;transition:all 0.2s;}
+.self-btn:hover{border-color:var(--gold);color:var(--gold);}
+.flashcard{perspective:1000px;cursor:pointer;margin-bottom:8px;}
+.flashcard-inner{position:relative;width:100%;min-height:140px;transition:transform 0.5s;transform-style:preserve-3d;}
+.flashcard.flipped .flashcard-inner{transform:rotateY(180deg);}
+.fc-front,.fc-back{position:absolute;width:100%;min-height:140px;backface-visibility:hidden;border-radius:12px;padding:24px;display:flex;flex-direction:column;justify-content:center;}
+.fc-front{background:var(--card);border:1.5px solid var(--border);}
+.fc-back{background:#1a3020;border:1.5px solid var(--correct);transform:rotateY(180deg);}
+.fc-front .fc-label{font-size:0.7rem;color:var(--gold);font-weight:700;letter-spacing:1px;margin-bottom:10px;}
+.fc-front .fc-q{font-size:0.95rem;line-height:1.6;}
+.fc-back .fc-a{font-size:0.92rem;line-height:1.65;color:#b8e8c8;}
+.fc-flip-hint{font-size:0.72rem;color:var(--muted);margin-top:8px;}
+.fc-rating{display:flex;gap:12px;margin-top:12px;}
+.fc-rate-btn{padding:8px 20px;border-radius:8px;border:1px solid;cursor:pointer;font-size:0.82rem;font-weight:600;transition:all 0.2s;background:transparent;}
+.fc-rate-ok{border-color:var(--correct);color:var(--correct);}
+.fc-rate-ok:hover{background:rgba(76,175,125,0.15);}
+.fc-rate-nok{border-color:var(--wrong);color:var(--wrong);}
+.fc-rate-nok:hover{background:rgba(224,82,82,0.15);}
+.task-actions{display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;}
+.btn-submit{background:var(--gold);color:#0a1520;border:none;padding:12px 28px;border-radius:9px;font-size:0.92rem;font-weight:700;cursor:pointer;transition:all 0.2s;}
+.btn-submit:hover{background:var(--gold2);}
+.btn-submit:disabled{opacity:0.4;cursor:default;}
+.btn-next{background:transparent;border:1.5px solid var(--gold);color:var(--gold);padding:12px 28px;border-radius:9px;font-size:0.92rem;font-weight:600;cursor:pointer;transition:all 0.2s;display:none;}
+.btn-next:hover{background:rgba(201,165,90,0.1);}
+.result-banner{padding:12px 16px;border-radius:8px;margin-top:14px;font-size:0.88rem;display:none;}
+.result-banner.ok{background:rgba(76,175,125,0.12);border-left:3px solid var(--correct);color:#7fd4a8;}
+.result-banner.nok{background:rgba(224,82,82,0.1);border-left:3px solid var(--wrong);color:#f59595;}
+.module-complete{text-align:center;padding:48px 24px;}
+.module-complete .trophy{font-size:3.5rem;margin-bottom:16px;}
+.module-complete h3{font-size:1.4rem;color:var(--gold);margin-bottom:8px;}
+.module-complete p{color:var(--muted);margin-bottom:24px;}
+.score-display{font-size:2.5rem;font-weight:800;color:var(--gold);}
+.score-max{font-size:1rem;color:var(--muted);}
+.site-footer{background:#080f18;border-top:1px solid var(--border);padding:14px 32px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+.site-footer .powered-full{font-size:0.78rem;color:var(--gold);font-weight:600;}
+.site-footer .author{font-size:0.72rem;color:var(--muted);}
+@media(max-width:600px){.matching-area{grid-template-columns:1fr;}.site-header{flex-direction:column;gap:8px;align-items:flex-start;}.stats-bar{gap:12px;}}
+</style>
+</head>
+<body>
+<div class="global-progress"><div class="global-progress-fill" id="globalBar"></div></div>
+<header class="site-header">
+  <div>
+    <div class="sub">Kompaktlehrgang HR Controlling</div>
+    <h1>Interaktives Lerntool – Tag 4</h1>
+  </div>
+  <div class="powered">Powered by BusinessClass Trainings</div>
+</header>
+<div id="homeScreen" class="screen active">
+  <div class="home-container">
+    <div class="home-title">
+      <h2>Lernmodule</h2>
+      <p>People Analytics, Descriptive Analytics und HR-Dashboards – alle Formate gemischt pro Modul.</p>
+    </div>
+    <div class="stats-bar">
+      <div class="stat-box"><div class="num" id="statTotal">0</div><div class="lbl">Aufgaben gesamt</div></div>
+      <div class="stat-box"><div class="num" id="statDone">0</div><div class="lbl">Erledigt</div></div>
+      <div class="stat-box"><div class="num" id="statScore">0</div><div class="lbl">Punkte erreicht</div></div>
+      <div class="stat-box"><div class="num" id="statModules">0/8</div><div class="lbl">Module abgeschlossen</div></div>
+      <div style="display:flex;align-items:center;">
+        <button class="btn-reset" onclick="showResetConfirm()">&#8635; Alle zurücksetzen</button>
+      </div>
+      <div class="reset-confirm" id="resetConfirm">
+        <p>Alle Fortschritte werden gelöscht. Bist du sicher?</p>
+        <div class="reset-confirm-btns">
+          <button class="btn-submit" onclick="confirmReset()" style="padding:8px 20px;font-size:0.85rem;">Ja, zurücksetzen</button>
+          <button class="btn-back" onclick="hideResetConfirm()" style="padding:8px 20px;font-size:0.85rem;">Abbrechen</button>
+        </div>
+      </div>
+    </div>
+    <div class="modules-grid" id="modulesGrid"></div>
+  </div>
+</div>
+<div id="moduleScreen" class="screen">
+  <div class="module-container">
+    <div class="module-nav">
+      <button class="btn-back" onclick="goHome()">&#8592; Übersicht</button>
+      <div id="moduleTitle" style="font-size:1rem;font-weight:600;color:var(--gold)"></div>
+      <div class="module-progress-text" id="moduleProgressText"></div>
+    </div>
+    <div id="taskArea"></div>
+  </div>
+</div>
+<footer class="site-footer">
+  <div class="powered-full">&#9670; Powered by BusinessClass Trainings &nbsp;&middot;&nbsp; businessclasstrainings.com</div>
+  <div class="author">Paul Slamanig | Kompaktlehrgang HR Controlling</div>
+</footer>
+<script>
+const MODULES = [
+  {
+    id:0, type:"b1",
+    title:"People Analytics – Grundlagen",
+    desc:"Evidenzbasierte Personalsteuerung, Reifegradmodell, Decision Utility",
+    tasks:[
+      {format:"mc",q:"Was beschreibt der Begriff Decision Utility im Kontext von People Analytics?",hint:"Eine Antwort ist richtig.",opts:[
+        {t:"Die Fähigkeit eines Algorithmus, autonom Entscheidungen zu treffen.",correct:false,fb:"Falsch – Decision Utility beschreibt einen menschlichen Entscheidungsrahmen, keinen Automatismus."},
+        {t:"Die Frage, ob eine Analyse eine Entscheidung tatsächlich verbessert – nicht, was aus den Daten ablesbar ist.",correct:true,fb:"Richtig – Rasmussen und Ulrich formulieren es so: Nicht 'Was zeigen die Daten?' sondern 'Welche Entscheidung wird dadurch besser?'"},
+        {t:"Den finanziellen Nutzen einer People-Analytics-Investition.",correct:false,fb:"Falsch – es geht um Entscheidungsqualität, nicht primär um finanziellen Nutzen."},
+        {t:"Die Nutzerzufriedenheit mit HR-Datentools.",correct:false,fb:"Falsch – das ist keine Definition von Decision Utility."},
+      ]},
+      {format:"tf",q:"People Analytics ersetzt das professionelle Urteilsvermögen erfahrener HR-Manager.",correct:false,fb_ok:"Richtig – People Analytics ist eine Erweiterung des Urteilsvermögens, kein Ersatz. Daten reduzieren Unsicherheit, eliminieren sie aber nicht.",fb_nok:"Falsch – People Analytics erweitert das Urteilsvermögen, ersetzt es aber nicht. Qualitative Informationen und Erfahrung bleiben unverzichtbar."},
+      {format:"matching",q:"Ordne die Reifegradstufen den richtigen Leitfragen zu.",pairs:[
+        {left:"Descriptive Analytics",right:"Was ist passiert?"},
+        {left:"Diagnostic Analytics",right:"Warum ist es passiert?"},
+        {left:"Predictive Analytics",right:"Was wird passieren?"},
+        {left:"Prescriptive Analytics",right:"Was sollen wir tun?"},
+      ]},
+      {format:"fill",q:"Ergänze: Das HC BRidge-Framework von Boudreau und Ramstad zeigt, dass HR-Kennzahlen nur dann strategisch wertvoll sind, wenn sie eine Verbindung zu ______ herstellen.",answer:"geschäftlichen Ergebnisgrößen",alt:["geschaeftlichen ergebnisgroessen","ergebnisgroessen","ergebnisgrößen","geschäftlichen ergebnisgrößen"],fb_ok:"Richtig – eine Fluktuationsrate wird erst zur Steuerungsgröße, wenn sie mit Recruitingkosten, Produktivitätsverlust und Kundenzufriedenheit verknüpft wird.",fb_nok:"Die gesuchte Antwort lautet: geschäftlichen Ergebnisgrößen."},
+      {format:"scenario",scenario:"Ein HR-Controller eines Industrieunternehmens hat drei Monate Arbeit in ein Predictive-Analytics-Modell investiert, das Kündigungswahrscheinlichkeiten berechnet. Die Ergebnisse sind statistisch valide – aber das Modell liefert für eine Mitarbeitergruppe, in der es kaum historische Abgangsdaten gibt, Prognosen mit sehr geringer Verlässlichkeit.",q:"Was ist der grundlegende Fehler in diesem Vorgehen?",opts:[
+        {t:"Das Modell hätte mehr Variablen berücksichtigen sollen.",correct:false,fb:"Nicht der Kernfehler – das Problem liegt tiefer."},
+        {t:"Predictive Analytics wurde eingesetzt, bevor eine solide Datenbasis vorhanden war. Das Modell baut auf unvollständiger Grundlage – typischer Fehler beim Überspringen von Reifegradstufen.",correct:true,fb:"Korrekt – das Reifegradmodell ist kein lineares Pflichtprogramm, aber Predictive Analytics auf unzureichender Datenbasis liefert unzuverlässige Ergebnisse."},
+        {t:"Das Modell hätte extern eingekauft statt selbst entwickelt werden sollen.",correct:false,fb:"Nicht der Kernfehler – die Datenbasis wäre bei einem externen Modell dieselbe."},
+        {t:"Predictive Analytics ist für Industrieunternehmen generell ungeeignet.",correct:false,fb:"Falsch – Predictive Analytics ist branchenunabhängig anwendbar, sofern die Datenbasis stimmt."},
+      ]},
+      {format:"flashcard",q:"Was ist das HC BRidge-Framework und wofür wird es verwendet?",a:"Das HC BRidge-Framework (Human Capital Bridge) von Boudreau und Ramstad zeigt, wie HR-Kennzahlen mit geschäftlichen Ergebnisgrößen verbunden werden. Es beantwortet die Frage: Welchen Weg nimmt eine HR-Maßnahme, bis sie sich in Unternehmensleistung niederschlägt? Es ist ein analytisches Werkzeug, um die strategische Relevanz von Personalentscheidungen zu begründen."},
+      {format:"mc",q:"Welche Aussage zum Reifegradmodell der Analytics ist richtig?",hint:"Eine Antwort ist richtig.",opts:[
+        {t:"Jedes Unternehmen sollte möglichst schnell Prescriptive Analytics implementieren.",correct:false,fb:"Falsch – die höchste Stufe ist nicht automatisch die beste. Entscheidend ist die Passung zur Datenbasis und zum strategischen Erkenntnisbedarf."},
+        {t:"Ein Unternehmen, das Descriptive Analytics konsequent und methodisch sauber betreibt, schöpft mehr Wert als eines, das mit unvollständiger Datenbasis Predictive-Modelle versucht.",correct:true,fb:"Richtig – das Modell ist ein Orientierungsrahmen, kein Entwicklungspflichtprogramm."},
+        {t:"Diagnostic Analytics ist nur für große Unternehmen mit eigener Statistikabteilung geeignet.",correct:false,fb:"Falsch – Diagnostic Analytics mit Drilldowns und Korrelationsanalysen ist für Unternehmen aller Größen zugänglich."},
+        {t:"Descriptive Analytics ist veraltet und wird durch KI ersetzt.",correct:false,fb:"Falsch – Descriptive Analytics bleibt die Grundlage aller weiteren analytischen Arbeit."},
+      ]},
+      {format:"tf",q:"Prescriptive Analytics verbindet analytische Erkenntnisse mit konkreten, datengestützten Handlungsempfehlungen.",correct:true,fb_ok:"Richtig – das ist das Kernmerkmal von Prescriptive Analytics: aus Prognosen werden Handlungsempfehlungen abgeleitet.",fb_nok:"Falsch – genau das ist die Definition von Prescriptive Analytics: sie geht über die Prognose hinaus und empfiehlt konkrete Maßnahmen."},
+      {format:"reflection",q:"Warum ist Korrelation nicht Kausalität – und welche Konsequenz hat das für die HR-Praxis bei Diagnostic Analytics?",model:"Korrelation bedeutet, dass zwei Variablen statistisch zusammenhängen. Kausalität bedeutet, dass eine Variable die andere verursacht. Ein starker negativer Zusammenhang zwischen Führungsbewertung und Fluktuation (r = -0,61) bedeutet nicht automatisch, dass schlechte Führung Fluktuation verursacht – beide könnten auch eine gemeinsame Ursache haben (z.B. strukturelle Unterbesetzung). Für die HR-Praxis bedeutet das: Diagnostic Analytics liefert Hypothesen, keine Beweise. Diese Hypothesen müssen durch weitere Analyse, Befragungen oder gezielte Maßnahmen überprüft werden. Maßnahmen auf Basis ungeprüfter Korrelationen können fehlgeleitet sein."}
+    ]
+  },
+  {
+    id:1, type:"b1",
+    title:"Descriptive & Diagnostic Analytics",
+    desc:"Methoden, Kennzahlen, Korrelation, Drilldown, Cohort-Analyse",
+    tasks:[
+      {format:"mc",q:"Was ist der entscheidende Unterschied zwischen Descriptive und Diagnostic Analytics?",hint:"Eine Antwort ist richtig.",opts:[
+        {t:"Descriptive Analytics verwendet Tabellen, Diagnostic Analytics verwendet Diagramme.",correct:false,fb:"Falsch – der Unterschied liegt im Erkenntnisziel, nicht im Darstellungsformat."},
+        {t:"Descriptive Analytics beschreibt vergangene Zustände. Diagnostic Analytics analysiert Ursachen und Zusammenhänge – warum ist etwas passiert?",correct:true,fb:"Richtig – das Erkenntnisziel unterscheidet die beiden Stufen: Beschreibung vs. Erklärung."},
+        {t:"Descriptive Analytics ist einfacher und für kleine Unternehmen, Diagnostic für große.",correct:false,fb:"Falsch – beide sind größenunabhängig, aber unterschiedlich im Erkenntnisanspruch."},
+        {t:"Diagnostic Analytics setzt immer externe Berater voraus.",correct:false,fb:"Falsch – viele Diagnostic-Methoden wie Drilldowns und einfache Korrelationsanalysen sind intern umsetzbar."},
+      ]},
+      {format:"fill",q:"Ergänze: Eine Fluktuationsrate beschreibt ein Problem – sie ______ es nicht. Dafür braucht es Diagnostic Analytics.",answer:"erklärt",alt:["erklaert"],fb_ok:"Richtig – das ist die zentrale Grenze von Descriptive Analytics.",fb_nok:"Die gesuchte Antwort lautet: erklärt."},
+      {format:"matching",q:"Ordne die analytischen Methoden den richtigen Beschreibungen zu.",pairs:[
+        {left:"Korrelationsanalyse",right:"Misst den statistischen Zusammenhang zwischen zwei Variablen (r zwischen -1 und +1)"},
+        {left:"Cohort-Analyse",right:"Verfolgt Gruppen mit gleichem Eintrittszeitpunkt über die Zeit – gut für Frühfluktuation"},
+        {left:"Drilldown",right:"Disaggregiert Gesamtkennzahlen in Subgruppen – macht Heterogenität sichtbar"},
+        {left:"Exit-Interview-Analyse",right:"Qualitative Ergänzung zur Hypothesenbildung über Abgangsgründe"},
+      ]},
+      {format:"scenario",scenario:"Ein Industrieunternehmen hat eine Gesamtfluktuationsrate von 14 %. Nach einem Drilldown zeigt sich: Standort A hat 8 % Fluktuation, Standort B hat 23 %. 78 % der Abgänge betreffen Mitarbeitende mit unter 2 Jahren Betriebszugehörigkeit. Exit-Interviews zeigen: 67 % nennen mangelnde Entwicklungsperspektiven.",q:"Welche Schlussfolgerung ist methodisch korrekt?",opts:[
+        {t:"Das Unternehmen hat ein allgemeines Fluktuationsproblem, das alle Bereiche betrifft.",correct:false,fb:"Falsch – der Drilldown zeigt klar, dass das Problem auf Standort B und Einsteiger konzentriert ist."},
+        {t:"Es handelt sich um ein spezifisches Problem bei neuen Mitarbeitenden an Standort B, mit Entwicklungsperspektiven als zentralem Treiber. Der Gesamtwert von 14 % verdeckt diese Diagnose.",correct:true,fb:"Korrekt – das ist der Mehrwert von Diagnostic Analytics: aus einem aggregierten Symptom wird eine differenzierte Diagnose."},
+        {t:"Das Problem liegt ausschließlich im Recruiting – falsche Kandidaten werden eingestellt.",correct:false,fb:"Möglicherweise ein Faktor, aber die Exit-Interview-Daten zeigen klar Entwicklungsperspektiven als Haupttreiber."},
+        {t:"Der Gesamtwert von 14 % ist im akzeptablen Bereich – kein Handlungsbedarf.",correct:false,fb:"Falsch – der Drilldown zeigt kritische Werte unter der Oberfläche."},
+      ]},
+      {format:"tf",q:"Ein Korrelationskoeffizient von r = -0,61 zwischen Führungsbewertung und Fluktuationsrate ist nach Cohen als starker Zusammenhang zu interpretieren.",correct:true,fb_ok:"Richtig – nach Cohen gilt |r| > 0,50 als starker Zusammenhang.",fb_nok:"Falsch – nach Cohens Orientierungswerten gilt |r| > 0,50 als starker Zusammenhang. Ein Wert von 0,61 liegt klar darüber."},
+      {format:"mc",q:"Welche Drilldown-Dimension ist im HR-Kontext besonders aufschlussreich?",hint:"Eine Antwort ist richtig.",opts:[
+        {t:"Alphabetische Reihenfolge der Nachnamen.",correct:false,fb:"Keine analytisch relevante Dimension."},
+        {t:"Die Führungsperson – konsistent überdurchschnittliche Fluktuation in bestimmten Teams ist ein starker Indikator für Führungsqualitätsprobleme.",correct:true,fb:"Richtig – people leave managers, not companies ist empirisch gut belegt."},
+        {t:"Die Schuhgröße der Mitarbeitenden.",correct:false,fb:"Keine steuerungsrelevante Dimension."},
+        {t:"Das Geburtsjahr.",correct:false,fb:"Altersgruppen können relevant sein, aber die Führungsperson ist als Drilldown-Dimension direkter handlungsrelevant."},
+      ]},
+      {format:"flashcard",q:"Was sind die typischen Peaks bei der Betriebszugehörigkeit zum Zeitpunkt des Abgangs?",a:"Laut Forschung gibt es drei typische Peaks: Bei 6–12 Monaten (Onboarding-Versagen – Erwartungen wurden nicht erfüllt), bei 3–5 Jahren (fehlende Karriereentwicklung – keine Aufstiegsperspektiven sichtbar) und bei 8–12 Jahren (Stagnation und Alternativattraktivität – bessere Angebote von außen werden attraktiver)."},
+      {format:"calc",q:"Berechne die Frühfluktuationsrate für folgendes Szenario: Von 40 Abgängen im Jahr hatten 14 eine Betriebszugehörigkeit von unter 12 Monaten.",steps:[
+        {label:"SCHRITT 1",desc:"Anzahl der Frühfluktuationen (Abgänge unter 12 Monate)",answer:"14",unit:"Personen",tolerance:0},
+        {label:"SCHRITT 2",desc:"Gesamtzahl der Abgänge",answer:"40",unit:"Personen",tolerance:0},
+        {label:"SCHRITT 3",desc:"Frühfluktuationsrate in % (Frühfluktuationen / Gesamtabgänge × 100)",answer:"35",unit:"%",tolerance:0},
+      ]},
+      {format:"reflection",q:"Ein Unternehmen hat eine Gesamtfluktuationsrate von 12 % und hält das für unproblematisch. Welche zusätzlichen Analysen würden Sie empfehlen, und warum reicht der Gesamtwert allein nicht aus?",model:"Der Gesamtwert verdeckt möglicherweise kritische Unterschiede. Empfohlene Analysen: 1. Drilldown nach Abteilung und Führungsperson – gibt es Hotspots mit 25 %+ Fluktuation? 2. Unterscheidung nach funktionaler (akzeptable Abgänge) und dysfunktionaler Fluktuation (Leistungsträger gehen). 3. Frühfluktuation: Wie hoch ist der Anteil der Abgänge im ersten Jahr? 4. Drilldown nach Qualifikationsniveau: Verlassen gerade die strategisch wichtigsten Fachkräfte das Unternehmen? 5. Vergleich mit Vorjahr und Branchenbenchmark. Erst die Kombination dieser Analysen ergibt ein handlungsrelevantes Bild."}
+    ]
+  },
+  {
+    id:2, type:"b1",
+    title:"Predictive & Prescriptive Analytics",
+    desc:"Prognosemodelle, logistische Regression, ethische Anforderungen, Prescriptive",
+    tasks:[
+      {format:"mc",q:"Was ist der wesentliche Vorteil der logistischen Regression gegenüber der linearen Regression für Kündigungsvorhersagen?",hint:"Eine Antwort ist richtig.",opts:[
+        {t:"Die logistische Regression ist schneller zu berechnen.",correct:false,fb:"Nicht der wesentliche Unterschied."},
+        {t:"Die logistische Regression liefert Wahrscheinlichkeitswerte zwischen 0 und 1 – die lineare Regression kann Werte außerhalb dieses Bereichs liefern, was für Wahrscheinlichkeiten sinnlos ist.",correct:true,fb:"Richtig – die logistische Funktion transformiert jeden Eingabewert auf den Bereich 0 bis 1."},
+        {t:"Die logistische Regression kann mehr Variablen verarbeiten.",correct:false,fb:"Falsch – beide Verfahren können beliebig viele Variablen berücksichtigen."},
+        {t:"Die logistische Regression braucht keine historischen Daten.",correct:false,fb:"Falsch – sie braucht zwingend historische Daten zum Training."},
+      ]},
+      {format:"tf",q:"Eine Odds Ratio von 2,4 für den Prädiktor 'Engagement-Score unter 60' bedeutet, dass Mitarbeitende mit diesem Merkmal eine 2,4-fach höhere Kündigungswahrscheinlichkeit haben.",correct:true,fb_ok:"Richtig – die Odds Ratio zeigt, um welchen Faktor sich die Wahrscheinlichkeit des Ereignisses verändert, wenn diese Variable zutrifft.",fb_nok:"Falsch – die Odds Ratio gibt genau diesen Faktor an: OR = 2,4 bedeutet 2,4-fach erhöhtes Risiko."},
+      {format:"matching",q:"Ordne die Prädiktoren den richtigen Odds Ratios aus einem typischen Fluktuationsmodell zu.",pairs:[
+        {left:"Betriebszugehörigkeit unter 2 Jahren",right:"OR = 3,1 (stärkstes Risiko)"},
+        {left:"Weiterbildung im letzten Jahr absolviert",right:"OR = 0,6 (schützendes Merkmal)"},
+        {left:"Engagement-Score unter 60",right:"OR = 2,4 (erhöhtes Risiko)"},
+        {left:"Führungsbewertung unterdurchschnittlich",right:"OR = 1,9 (erhöhtes Risiko)"},
+      ]},
+      {format:"scenario",scenario:"Ein Unternehmen hat ein Predictive-Analytics-Modell mit AUC = 0,79 und Pseudo-R² = 0,41 entwickelt. Die HR-Leitung möchte das Modell direkt dazu nutzen, Mitarbeitende mit Kündigungsrisiko automatisch auf eine Liste zu setzen, die ihnen bestimmte Entwicklungsmaßnahmen verweigert – damit das Unternehmen nicht in Menschen investiert, die bald gehen.",q:"Welches Problem entsteht dabei?",opts:[
+        {t:"Das Modell ist zu ungenau für solche Entscheidungen.",correct:false,fb:"Ein AUC von 0,79 ist durchaus gut – aber das ist nicht das eigentliche Problem."},
+        {t:"Das widerspricht dem Grundprinzip von People Analytics: Predictive Analytics soll Unterstützungsmaßnahmen ermöglichen, nicht Mitarbeitende benachteiligen. Zudem schränkt Art. 22 DSGVO automatisierte Einzelentscheidungen ein.",correct:true,fb:"Korrekt – Prognosen dienen der Frühwarnung für Unterstützung, nicht als Grundlage für Benachteiligung. Das wäre auch kontraproduktiv."},
+        {t:"Das Modell braucht mehr Trainingsdaten, bevor es für Entscheidungen genutzt werden kann.",correct:false,fb:"Nicht das Kernproblem – die ethische und rechtliche Dimension ist entscheidend."},
+        {t:"Solche Modelle dürfen nur von externen Beratern betrieben werden.",correct:false,fb:"Falsch – das ist keine rechtliche oder ethische Anforderung."},
+      ]},
+      {format:"fill",q:"Ergänze: Ein AUC-Wert der ROC-Kurve von ______ gilt als Grenze zwischen zufälliger Prognose und echter Vorhersagekraft.",answer:"0,5",alt:["0.5","0,5"],fb_ok:"Richtig – bei AUC = 0,5 ist das Modell nicht besser als Zufall. Ab AUC = 0,7 spricht man von guter Vorhersagekraft.",fb_nok:"Die Antwort lautet 0,5 – bei diesem Wert ist das Modell nicht besser als Zufall."},
+      {format:"mc",q:"Was unterscheidet Prescriptive Analytics von Predictive Analytics?",hint:"Eine Antwort ist richtig.",opts:[
+        {t:"Prescriptive Analytics verwendet neuere Algorithmen.",correct:false,fb:"Nicht der wesentliche Unterschied."},
+        {t:"Prescriptive Analytics verbindet Prognosen mit konkreten Handlungsempfehlungen und ermöglicht die Simulation von Maßnahmenszenarien – Predictive Analytics liefert nur die Prognose.",correct:true,fb:"Richtig – Prescriptive geht den entscheidenden Schritt weiter: von 'Was wird passieren?' zu 'Was sollen wir tun?'"},
+        {t:"Prescriptive Analytics ist nur in Großunternehmen anwendbar.",correct:false,fb:"Falsch – auch mittelständische Unternehmen können hybride Prescriptive-Modelle einsetzen."},
+        {t:"Prescriptive Analytics funktioniert ohne Datenbasis.",correct:false,fb:"Falsch – auch Prescriptive Analytics setzt eine solide Datenbasis voraus."},
+      ]},
+      {format:"flashcard",q:"Was ist Survival-Analyse und wofür wird sie im HR-Kontext eingesetzt?",a:"Survival-Analyse ist eine statistische Methode, die nicht nur ob, sondern wann ein Ereignis eintreten wird, modelliert. Im HR-Kontext: Wie lange bleibt eine Person voraussichtlich im Unternehmen? Sie liefert eine Überlebenskurve, die zeigt, nach welchem Zeitraum welcher Anteil der Mitarbeitenden das Unternehmen verlassen hat. Besonders wertvoll für Nachfolgeplanung und Personalbedarfsprognosen."},
+      {format:"tf",q:"DSGVO Art. 22 erlaubt es Unternehmen, vollständig automatisierte Entscheidungen über Mitarbeitende auf Basis von Predictive-Modellen zu treffen, ohne menschliche Überprüfung.",correct:false,fb_ok:"Richtig – Art. 22 DSGVO schränkt automatisierte Einzelentscheidungen ein. Eine menschliche Entscheidungsinstanz muss immer einbezogen sein.",fb_nok:"Falsch – Art. 22 DSGVO verlangt, dass bei Entscheidungen mit erheblichen Auswirkungen auf Personen eine menschliche Überprüfung stattfindet."},
+      {format:"reflection",q:"Ein mittelständisches Unternehmen mit 200 Mitarbeitenden möchte Predictive Analytics für Fluktuationsprognosen einsetzen. Welche Voraussetzungen müssen erfüllt sein, und welche Risiken sollte das Unternehmen kennen?",model:"Voraussetzungen: 1. Ausreichende historische Datenbasis (mindestens 2–3 Jahre, mind. 50–100 Abgänge für statistisch stabile Modelle). 2. Vollständige, konsistente und bereinigte Daten aus HRIS, Zeiterfassung, LMS und Befragungen. 3. Klare Frage: Welche Entscheidung soll verbessert werden? 4. Statistische Methodenkompetenz oder externer Partner. Risiken: 1. Selection Bias – von Abgegangenen liegen Daten vor, von Verbliebenen oft nicht. 2. Diskriminierungsrisiko – Modelle können historische Ungleichbehandlungen reproduzieren. 3. DSGVO-Compliance – Betriebsrat und Mitarbeitende müssen informiert sein. 4. Overfitting – bei kleinen Datenmengen besteht die Gefahr, dass Modelle Zufälligkeiten lernen."}
+    ]
+  },
+  {
+    id:3, type:"b2",
+    title:"Datenquellen & Personalstruktur",
+    desc:"HR-Datensysteme, Konsolidierung, FTE, Altersstruktur, demografisches Risiko",
+    tasks:[
+      {format:"mc",q:"Was ist die häufigste Herausforderung bei der Konsolidierung von HR-Daten in der Praxis?",hint:"Eine Antwort ist richtig.",opts:[
+        {t:"Fehlende Software-Lizenzen für Analysetools.",correct:false,fb:"Nicht die häufigste Ursache – das Problem liegt typischerweise tiefer."},
+        {t:"Daten liegen in unterschiedlichen Systemen mit inkonsistenten Mitarbeiter-IDs, unterschiedlichen Abteilungsbezeichnungen und verschiedenen Aktualisierungszyklen.",correct:true,fb:"Richtig – das ist das klassische Datensilo-Problem, das in den meisten Unternehmen die eigentliche Hürde für professionelle HR-Analytics ist."},
+        {t:"Mitarbeitende wollen nicht, dass ihre Daten erfasst werden.",correct:false,fb:"Datenschutzbedenken sind ein Thema, aber nicht die häufigste technische Herausforderung."},
+        {t:"HR-Systeme sind zu teuer für mittelständische Unternehmen.",correct:false,fb:"Kosten sind ein Faktor, aber nicht die häufigste Konsolidierungsherausforderung."},
+      ]},
+      {format:"calc",q:"Berechne den FTE-Wert: Ein Unternehmen hat 4 Teilzeitkräfte mit je 24 Stunden pro Woche. Die Vollzeitstundenzahl beträgt 40 Stunden pro Woche.",steps:[
+        {label:"SCHRITT 1",desc:"Wochenstunden je Teilzeitkraft geteilt durch Vollzeitstunden (24 / 40)",answer:"0.6",unit:"FTE je Person",tolerance:0.01},
+        {label:"SCHRITT 2",desc:"Gesamte FTE (Anzahl Teilzeitkräfte × FTE je Person)",answer:"2.4",unit:"FTE",tolerance:0.1},
+      ]},
+      {format:"tf",q:"Eine Investition in eine saubere HR-Datenarchitektur ist primär eine IT-Entscheidung.",correct:false,fb_ok:"Richtig – es ist eine strategische HR-Entscheidung. Die Datenarchitektur definiert, welche Analysen überhaupt möglich sind.",fb_nok:"Falsch – eine HR-Datenarchitektur ist eine strategische HR-Entscheidung, keine rein technische. Wer hier spart, spart an der falschen Stelle."},
+      {format:"matching",q:"Ordne die Datenquellen den richtigen Primärinhalten zu.",pairs:[
+        {left:"HRIS (HR-Informationssystem)",right:"Stammdaten: Eintrittsdatum, Funktion, Gehalt, Qualifikationen"},
+        {left:"Zeiterfassungssystem",right:"Anwesenheit, Abwesenheit, Überstunden, Schichtpläne"},
+        {left:"Bewerbermanagementsystem (ATS)",right:"Time-to-Hire, Cost-per-Hire, Bewerbungsquellen"},
+        {left:"Lernmanagementsystem (LMS)",right:"Schulungsteilnahmen, Abschlüsse, Weiterbildungsstunden"},
+      ]},
+      {format:"fill",q:"Ergänze: Der demografische Risikoindex (DRI) berechnet den Anteil der Mitarbeitenden, die in den nächsten ______ Jahren das Pensionsalter erreichen, gewichtet nach strategischer Bedeutung.",answer:"5",alt:["fünf","fuenf"],fb_ok:"Richtig – der DRI fokussiert auf den kritischen 5-Jahres-Horizont für die Nachfolgeplanung.",fb_nok:"Die Antwort lautet 5 Jahre."},
+      {format:"scenario",scenario:"In einem Produktionsunternehmen haben alle HRIS-Einträge der Abteilung 'Zerspanung' unterschiedliche Schreibweisen: 'Zerspanung', 'Zerspanungsabt.', 'Abt. Zerspanung' und 'ZER'. Die Fluktuationsanalyse dieser Abteilung ergibt je nach Auswertung unterschiedliche Werte.",q:"Was ist das Grundproblem, und wie wird es gelöst?",opts:[
+        {t:"Das HRIS-System ist veraltet und muss ausgetauscht werden.",correct:false,fb:"Nicht zwingend – das Problem ist nicht das System, sondern die fehlende Datenpflege."},
+        {t:"Fehlende einheitliche Stammdefinitionen und fehlende Pflegeverantwortung führen zu inkonsistenten Daten. Lösung: Standardisierte Abteilungsbezeichnungen und definierte Datenpflegeverantwortung.",correct:true,fb:"Richtig – das ist eine der drei Mindestanforderungen an eine belastbare HR-Datenbasis."},
+        {t:"Die Mitarbeitenden sollten ihre eigenen Daten pflegen.",correct:false,fb:"Falsch – Stammdatenpflege braucht definierte organisationale Verantwortung, keine Selbstpflege."},
+        {t:"Die Abteilung sollte umbenannt werden.",correct:false,fb:"Das löst das Symptom, nicht das Problem – die Pflegeverantwortung bleibt ungeklärt."},
+      ]},
+      {format:"flashcard",q:"Was sind die drei Mindestanforderungen an eine belastbare HR-Datenbasis?",a:"1. Einheitliche Mitarbeiter-ID: Jede Person hat in allen Systemen dieselbe eindeutige Kennung – Grundlage jeder systemübergreifenden Analyse. 2. Einheitliche Stammdefinitionen: Abteilungsbezeichnungen, Vertragsarten und Funktionskategorien sind in allen Systemen identisch kodiert. 3. Definierte Pflegeverantwortung: Für jedes Datenfeld ist klar geregelt, wer es aktuell hält – und wann es aktualisiert werden muss."},
+      {format:"mc",q:"Welche Kombination von Merkmalen signalisiert das höchste demografische Risiko in einer Belegschaft?",hint:"Eine Antwort ist richtig.",opts:[
+        {t:"Hoher Anteil junger Mitarbeitender mit kurzer Betriebszugehörigkeit.",correct:false,fb:"Das kann ein Fluktuationsrisiko sein, aber kein demografisches Risiko im Sinne von Nachfolge."},
+        {t:"Hoher Altersmedian in Kombination mit langen Betriebszugehörigkeiten, besonders in strategisch wichtigen Funktionen.",correct:true,fb:"Richtig – diese Kombination signalisiert ein nahes Pensionierungsrisiko mit erheblichem Wissenstransfer-Bedarf."},
+        {t:"Hoher Frauenanteil in technischen Funktionen.",correct:false,fb:"Kein demografisches Risikosignal – ein hoher Frauenanteil ist kein Risikomerkmal."},
+        {t:"Viele befristete Verträge.",correct:false,fb:"Ein strukturelles Risiko, aber kein demografisches Risiko im engeren Sinn."},
+      ]},
+      {format:"reflection",q:"Ein HR-Controller stellt fest: 'Wir haben alle Daten, die wir brauchen – in fünf verschiedenen Systemen, die nicht miteinander kommunizieren.' Was sind die konkreten Schritte, um aus dieser Situation eine belastbare Datenbasis zu schaffen?",model:"Schritt 1: Datenquellen inventarisieren – welches System enthält welche Daten, wie aktuell und wie vollständig? Schritt 2: Einheitliche Mitarbeiter-ID einführen oder aufdecken, ob bereits eine existiert, die nur nicht konsequent genutzt wird. Schritt 3: Stammdefinitionen harmonisieren – Abteilungsbezeichnungen, Funktionskategorien, Vertragsarten einheitlich kodieren. Schritt 4: Pflegeverantwortung klären – wer ist für welches Datenfeld verantwortlich, wann muss es aktualisiert werden? Schritt 5: Konsolidierungslösung wählen – manuelles Masterdatenblatt, Data-Warehouse oder HRIS-Integration, je nach verfügbaren Ressourcen. Schritt 6: Qualitätsprüfung der Ausgangsdaten vor dem ersten Analyseeinsatz."}
+    ]
+  },
+  {
+    id:4, type:"b2",
+    title:"Fluktuation, Gesundheit & HR-Kennzahlen",
+    desc:"Fluktuationstypen, Bradford-Faktor, Kostenrechnung, Recruiting-Kennzahlen",
+    tasks:[
+      {format:"mc",q:"Was beschreibt dysfunktionale Fluktuation?",hint:"Eine Antwort ist richtig.",opts:[
+        {t:"Fluktuation, die durch interne Konflikte ausgelöst wird.",correct:false,fb:"Falsch – dysfunktional bezieht sich auf die Konsequenz für das Unternehmen, nicht auf die Ursache."},
+        {t:"Das Ausscheiden von Leistungsträgern, Experten oder schwer ersetzbaren Fachkräften – strategisch schädlich und mit höchster Priorität in der Analyse zu behandeln.",correct:true,fb:"Richtig – im Gegensatz zur funktionalen Fluktuation (Leistungsschwache gehen) schadet dysfunktionale Fluktuation dem Unternehmen direkt."},
+        {t:"Fluktuation, die höher als der Branchendurchschnitt ist.",correct:false,fb:"Falsch – die Klassifikation als dysfunktional hängt von der Person, nicht von der Rate ab."},
+        {t:"Fluktuation bei Führungskräften.",correct:false,fb:"Führungskräfte können dysfunktionale Fluktuation verursachen, aber der Begriff bezieht sich auf alle Ebenen."},
+      ]},
+      {format:"calc",q:"Berechne die jährlichen Fluktuationskosten für folgendes Szenario: 20 Abgänge pro Jahr, durchschnittliches Jahresgehalt 42.000 EUR, Kostenfaktor 0,75.",steps:[
+        {label:"SCHRITT 1",desc:"Kosten pro Abgang (Jahresgehalt × Kostenfaktor)",answer:"31500",unit:"EUR",tolerance:0},
+        {label:"SCHRITT 2",desc:"Gesamte Fluktuationskosten pro Jahr (Abgänge × Kosten je Abgang)",answer:"630000",unit:"EUR",tolerance:0},
+      ]},
+      {format:"tf",q:"Kurzzeiterkrankungen (1–3 Tage) korrelieren stärker mit Arbeitsklima und Führungsqualität als Langzeiterkrankungen.",correct:true,fb_ok:"Richtig – Langzeiterkrankungen haben häufiger medizinische Ursachen, während häufige Kurzerkrankungen eher auf Motivationsprobleme und Führungsdefizite hinweisen.",fb_nok:"Falsch – die Forschung zeigt konsistent, dass Kurzzeiterkrankungen stärker mit Engagement und Führungsqualität zusammenhängen."},
+      {format:"matching",q:"Ordne die Fluktuationstypen den richtigen Beschreibungen zu.",pairs:[
+        {left:"Funktionale Fluktuation",right:"Leistungsschwache gehen – neutral oder positiv für das Unternehmen"},
+        {left:"Dysfunktionale Fluktuation",right:"Leistungsträger und Experten gehen – strategisch schädlich"},
+        {left:"Unvermeidliche Fluktuation",right:"Pensionierungen, Umzüge, Erkrankungen – planbar, aber nicht verhinderbar"},
+        {left:"Frühfluktuation",right:"Abgänge innerhalb der ersten 12 Monate – Indikator für Onboarding-Qualität"},
+      ]},
+      {format:"scenario",scenario:"Person A hatte in einem Jahr 1 Abwesenheitsepisode mit 10 Tagen. Person B hatte 5 Episoden mit insgesamt 10 Tagen. Der Bradford-Faktor von Person A beträgt 10, jener von Person B beträgt 250.",q:"Was sagt der Vergleich dieser beiden Bradford-Faktoren aus?",opts:[
+        {t:"Person B ist kränker als Person A.",correct:false,fb:"Falsch – beide haben dieselbe Gesamtzahl an Fehltagen."},
+        {t:"Viele kurze Abwesenheiten wie bei Person B weisen eher auf Engagement-Probleme oder Führungsdefizite hin als eine einzelne lange Erkrankung – der Bradford-Faktor macht das sichtbar.",correct:true,fb:"Richtig – das ist der Erkenntnisbeitrag des Bradford-Faktors: er gewichtet die Häufigkeit stärker als die Dauer."},
+        {t:"Person B muss sofort entlassen werden.",correct:false,fb:"Falsch – der Bradford-Faktor ist ein Gesprächsauslöser, keine Entlassungsgrundlage."},
+        {t:"Beide Personen haben denselben Wert, weil die Gesamtfehltage gleich sind.",correct:false,fb:"Falsch – die Formel B = S² × D gewichtet die Episodenanzahl quadratisch."},
+      ]},
+      {format:"fill",q:"Ergänze die Formel für den Bradford-Faktor: B = ______ × D, wobei S die Anzahl der Abwesenheitsepisoden und D die Gesamtzahl der Abwesenheitstage ist.",answer:"S²",alt:["s2","s hoch 2","s²","s^2"],fb_ok:"Richtig – S wird quadriert, um die Häufigkeit besonders stark zu gewichten.",fb_nok:"Die Antwort lautet S² (S quadriert) – Formel: B = S² × D."},
+      {format:"flashcard",q:"Was sind die vier Kostenkategorien bei der Fluktuationskostenrechnung?",a:"1. Direkte Recruitingkosten (Stellenanzeigen, Headhunter, Assessment) – ca. 15–25 % der Gesamtkosten. 2. Einarbeitungskosten (Trainer-Zeit, Produktivitätsramp-up) – ca. 20–30 %. 3. Vakanzkosten (Produktivitätsverlust während der Vakanz) – ca. 25–35 %. 4. Wissenstransferkosten (Verlust impliziten Wissens) – ca. 20–30 %. Gesamtkosten liegen je nach Qualifikationsniveau bei 50–200 % des Jahresbruttogehalts."},
+      {format:"mc",q:"Wann ist eine Offer Acceptance Rate laut Benchmark als gut zu bezeichnen?",hint:"Eine Antwort ist richtig.",opts:[
+        {t:"Wenn sie über 70 % liegt.",correct:false,fb:"70 % gilt bereits als Signalwert für Handlungsbedarf – nicht als gut."},
+        {t:"Wenn sie über 85 % liegt.",correct:true,fb:"Richtig – über 85 % gilt als gut. Unter 70 % signalisiert Attraktivitätsprobleme beim Angebot oder beim Arbeitgeber."},
+        {t:"Wenn sie 100 % beträgt.",correct:false,fb:"100 % wäre ideal, aber unrealistisch als Benchmark."},
+        {t:"Wenn sie dem Branchendurchschnitt entspricht.",correct:false,fb:"Der Branchendurchschnitt ist ein Kontext, aber 85 % ist der absolute Richtwert für 'gut'."},
+      ]},
+      {format:"reflection",q:"Ein Unternehmen plant, sein Recruiting-Budget um 20 % zu erhöhen, weil die Time-to-Hire zu lang ist. Welche Fragen sollten vorher beantwortet werden, und welche Kennzahlen wären dafür relevant?",model:"Bevor das Budget erhöht wird: 1. Liefern die aktuellen Kanäle qualifizierte Kandidaten? (Bewerberqualitätsquote je Kanal) 2. Wie hoch ist die Offer Acceptance Rate? Eine niedrige OAR deutet auf ein Attraktivitätsproblem, nicht auf zu wenig Budget. 3. Wie entwickelt sich die Frühfluktuation? Wenn Kandidaten schnell wieder gehen, ist das Problem im Onboarding, nicht im Recruiting. 4. Wie lange bleiben Mitarbeitende, die über verschiedene Kanäle eingestellt wurden? (Retentionsrate je Kanal nach 12 und 24 Monaten) 5. Was kostet eine Einstellung je Kanal? (Cost-per-Hire je Kanal) Ein günstiger Kanal mit hoher Frühfluktuation ist teuer. Mehr Budget löst ein Kapazitätsproblem – aber kein Qualitäts- oder Attraktivitätsproblem."}
+    ]
+  },
+  {
+    id:5, type:"b2",
+    title:"Statistische Grundlagen & Fehler in der Praxis",
+    desc:"Mittelwert, Median, Standardabweichung, Visualisierung, typische Fehler",
+    tasks:[
+      {format:"mc",q:"Warum ist bei Gehaltsdaten der Median aussagekräftiger als das arithmetische Mittel?",hint:"Eine Antwort ist richtig.",opts:[
+        {t:"Weil der Median leichter zu berechnen ist.",correct:false,fb:"Rechenaufwand ist kein analytisches Argument."},
+        {t:"Weil Gehaltsdaten typischerweise rechtsschief verteilt sind – wenige sehr hohe Gehälter verzerren das arithmetische Mittel erheblich nach oben, der Median bildet die typische Realität besser ab.",correct:true,fb:"Richtig – bei schiefen Verteilungen ist der Median robuster gegenüber Ausreißern."},
+        {t:"Weil das arithmetische Mittel bei Gehältern nicht berechnet werden kann.",correct:false,fb:"Falsch – es kann berechnet werden, ist aber oft irreführend."},
+        {t:"Weil der Median immer kleiner als das arithmetische Mittel ist.",correct:false,fb:"Falsch – das stimmt nur bei rechtsschieven Verteilungen."},
+      ]},
+      {format:"tf",q:"Zwei Gruppen mit demselben Mittelwert bei Leistungsbewertungen sind aus Führungssicht gleich herausfordernd.",correct:false,fb_ok:"Richtig – die Standardabweichung zeigt, wie stark die Werte streuen. Eine homogene Gruppe (niedrige Standardabweichung) stellt andere Führungsanforderungen als eine heterogene Gruppe mit Hochleistern und Underperformern gleichzeitig.",fb_nok:"Falsch – die Standardabweichung entscheidet, ob eine Gruppe homogen (alle nah am Durchschnitt) oder heterogen (große Unterschiede) ist. Das macht einen erheblichen Führungsunterschied."},
+      {format:"matching",q:"Ordne die Visualisierungsformen den richtigen HR-Anwendungen zu.",pairs:[
+        {left:"Liniendiagramm",right:"Fluktuationsrate im Zeitverlauf (5 Jahre)"},
+        {left:"Balkendiagramm",right:"Krankenstand nach Abteilung (Vergleich diskreter Kategorien)"},
+        {left:"Heatmap",right:"Krankenstand nach Abteilung und Monat (zweidimensionales Muster)"},
+        {left:"Scatterplot",right:"Zusammenhang zwischen Schulungsstunden und Leistungsbewertung"},
+      ]},
+      {format:"scenario",scenario:"Ein HR-Bericht zeigt im Jahresabschluss: Fluktuationsrate 14 %, Krankenstand 4,8 %, Schulungsstunden 11,2 h/MA. Alle Werte ohne Vorjahresvergleich, ohne Zielwert und ohne Benchmark.",q:"Was fehlt, damit diese Zahlen steuerungsrelevant sind?",opts:[
+        {t:"Mehr Nachkommastellen für höhere Präzision.",correct:false,fb:"Mehr Dezimalstellen erhöhen die Scheinpräzision, nicht die Steuerungsrelevanz."},
+        {t:"Kontextualisierung durch Zeitvergleich (Entwicklung), Zielwert (Soll-Ist), Benchmark (externer Vergleich) und Schwellenwert (ab wann wird gehandelt).",correct:true,fb:"Richtig – eine Kennzahl allein ist keine Information. Erst der Kontext macht sie zur Steuerungsinformation."},
+        {t:"Eine grafische Darstellung als Tortendiagramm.",correct:false,fb:"Falsch – und Tortendiagramme sind für diese Kennzahlen ohnehin nicht empfohlen."},
+        {t:"Die Daten müssen von einer externen Stelle zertifiziert werden.",correct:false,fb:"Falsch – das ist keine Voraussetzung für Steuerungsrelevanz."},
+      ]},
+      {format:"fill",q:"Ergänze: Wer alles misst, steuert ______. Die Lösung ist eine klare Hierarchie von drei bis fünf strategischen Schlüsselkennzahlen.",answer:"nichts",alt:["nichts"],fb_ok:"Richtig – Kennzahlenfriedhöfe führen zu Informationsüberflutung statt zu Orientierung.",fb_nok:"Die Antwort lautet: nichts."},
+      {format:"mc",q:"Welche Visualisierungsform sollte für den Vergleich von Fluktuationsraten nach Abteilung verwendet werden?",hint:"Eine Antwort ist richtig.",opts:[
+        {t:"Tortendiagramm.",correct:false,fb:"Falsch – das Auge kann Winkel schlecht vergleichen. Ab drei Kategorien ist ein Balkendiagramm überlegen."},
+        {t:"Balkendiagramm.",correct:true,fb:"Richtig – Balkendiagramme eignen sich für Vergleiche zwischen diskreten Kategorien. Das Auge kann Längen besser vergleichen als Winkel."},
+        {t:"Liniendiagramm.",correct:false,fb:"Falsch – Linien suggerieren einen kontinuierlichen Verlauf zwischen Messpunkten. Für kategoriale Vergleiche ist das Balkendiagramm korrekt."},
+        {t:"3D-Säulendiagramm.",correct:false,fb:"Falsch – 3D-Effekte verzerren Größenverhältnisse und sollten vermieden werden."},
+      ]},
+      {format:"flashcard",q:"Was sind die fünf häufigsten Fehler in der Praxis der Descriptive Analytics?",a:"1. Kennzahlenfriedhöfe statt relevanter Indikatoren – zu viele Kennzahlen ohne Priorisierung. 2. Aggregation ohne Differenzierung – Gesamtkennzahlen verdecken die tatsächliche Situation. 3. Kennzahlen ohne Referenzwert – eine Zahl ohne Vergleich ist nutzlos. 4. Rückwärtsgewandtes Reporting ohne Handlungsimpuls – Beschreibung ohne Empfehlung. 5. Datensilos und inkonsistente Definitionen – wenn Fluktuation in HR anders berechnet wird als in Finance, entstehen Diskussionen über Zahlen statt über Maßnahmen."},
+      {format:"tf",q:"Eine Y-Achse im Diagramm, die nicht bei null beginnt, ist in der Datenvisualisierung immer falsch.",correct:false,fb_ok:"Richtig – es gibt Fälle, in denen eine nicht bei null beginnende Achse sinnvoll ist, z.B. bei sehr kleinen Veränderungen in einem engen Wertebereich. Das Problem entsteht, wenn damit Veränderungen optisch übertrieben werden, ohne das explizit kenntlich zu machen.",fb_nok:"Falsch, aber die Einschränkung gilt: Eine abgeschnittene Achse übertreibt optisch Veränderungen. Sie sollte nur dort verwendet werden, wo der Kontext klar ist."},
+      {format:"reflection",q:"Erläutern Sie den Unterschied zwischen arithmetischem Mittel und Median an einem konkreten HR-Beispiel. Wann sollte welches Maß verwendet werden?",model:"Beispiel Gehaltsanalyse: 99 Mitarbeitende verdienen 35.000 EUR, 1 Geschäftsführer verdient 500.000 EUR. Arithmetisches Mittel: (99 × 35.000 + 500.000) / 100 = 39.650 EUR – kein einziger Mitarbeitender verdient tatsächlich diesen Betrag. Median: 35.000 EUR – bildet die Gehaltsrealität der Belegschaft korrekt ab. Faustregel: Wenn Mittelwert größer als Median, liegt eine rechtsschiefe Verteilung vor (typisch für Gehälter, Krankheitstage, Betriebszugehörigkeit). In diesen Fällen den Median bevorzugen. Das arithmetische Mittel ist sinnvoll bei symmetrischen Verteilungen ohne Ausreißer, z.B. bei standardisierten Leistungsbewertungen mit klar definiertem Wertebereich."}
+    ]
+  },
+  {
+    id:6, type:"b3",
+    title:"HR-Dashboards: Aufbau & Gestaltung",
+    desc:"Dashboard-Prinzipien, Zielgruppenorientierung, RAG-Status, Gestaltungsregeln",
+    tasks:[
+      {format:"mc",q:"Was ist die Kernaufgabe eines HR-Dashboards?",hint:"Eine Antwort ist richtig.",opts:[
+        {t:"Alle verfügbaren HR-Daten in einer einzigen Ansicht darzustellen.",correct:false,fb:"Falsch – ein Dashboard ist kein Datenlager. Vollständigkeit schadet der Wirksamkeit."},
+        {t:"Ausgewählte Kennzahlen in verdichteter, strukturierter Form darzustellen, sodass Entscheidungsträger schnell Statusüberblick, Trends und Handlungsbedarf erkennen.",correct:true,fb:"Richtig – das Dashboard ist ein Kommunikationsinstrument, kein Analysetool."},
+        {t:"Ursachen für Abweichungen in Kennzahlen zu erklären.",correct:false,fb:"Falsch – das ist die Aufgabe der Diagnostic Analytics, nicht des Dashboards."},
+        {t:"HR-Maßnahmen automatisch zu planen und umzusetzen.",correct:false,fb:"Falsch – das wäre Prescriptive Analytics, nicht ein Dashboard."},
+      ]},
+      {format:"tf",q:"Ein Dashboard, das für alle Hierarchieebenen identisch aufgebaut ist, ist optimal, weil alle dieselben Daten sehen können.",correct:false,fb_ok:"Richtig – unterschiedliche Zielgruppen haben unterschiedliche Informationsbedürfnisse und Zeitbudgets. Ein Dashboard für alle ist für niemanden optimal.",fb_nok:"Falsch – zielgruppenorientiertes Design ist das wichtigste Prinzip beim Dashboard-Aufbau. Strategische Führung braucht 5–7 Schlüsselkennzahlen; operative Ebene braucht Detailanalysen."},
+      {format:"matching",q:"Ordne die Dashboard-Ebenen den richtigen Informationsbedürfnissen zu.",pairs:[
+        {left:"Strategische Ebene (GF/Vorstand)",right:"Max. 5–7 Schlüsselkennzahlen, RAG-Status, monetäre Übersetzung der HR-Risiken"},
+        {left:"Taktische Ebene (HR-Leitung)",right:"Kennzahlen nach Abteilung, Zeitreihen, Frühwarnindikatoren, Bereichsvergleiche"},
+        {left:"Operative Ebene (HR-Business-Partner)",right:"Team- und Abteilungsdetails, Abwesenheitsanalysen, offene Stellen, kritische Muster"},
+        {left:"RAG-Status",right:"Rot/Amber/Grün – setzt jeden Kennzahlenwert sofort in Bezug zu definierten Schwellenwerten"},
+      ]},
+      {format:"scenario",scenario:"Ein HR-Dashboard für den Vorstand eines Maschinenbauunternehmens enthält 34 Kennzahlen, darunter Bradford-Faktor-Verteilungen, detaillierte Recruiting-Kanalkennzahlen und individuelle Abteilungskrankenstände. Die Führungskraft sagt nach der Präsentation: 'Das ist sehr detailliert. Ich weiß jetzt viel, weiß aber nicht, was ich tun soll.'",q:"Was ist das Kernproblem dieses Dashboards?",opts:[
+        {t:"Die Daten sind nicht korrekt berechnet worden.",correct:false,fb:"Die Korrektheit der Daten ist nicht das Problem, das hier beschrieben wird."},
+        {t:"Das Dashboard verletzt das Prinzip der Zielgruppenorientierung: Für die strategische Ebene sind maximal 5–7 Schlüsselkennzahlen mit klarem Geschäftsbezug und Handlungsimpuls notwendig.",correct:true,fb:"Genau – die Führungskraft hat die Kernbotschaft nicht gefunden, weil sie in 34 Kennzahlen begraben ist."},
+        {t:"Es fehlen noch mehr Kennzahlen, damit das Bild vollständig ist.",correct:false,fb:"Falsch – das Problem ist zu viel Information, nicht zu wenig."},
+        {t:"Das Dashboard sollte auf Papier statt digital präsentiert werden.",correct:false,fb:"Das Medium ist nicht das Problem."},
+      ]},
+      {format:"fill",q:"Ergänze: Das Data-Ink-Ratio nach Tufte besagt, dass der Anteil ______ Tinte an der Gesamttinte eines Diagramms maximiert werden soll.",answer:"informationstragender",alt:["informationsrelevanter","relevanter","informationstragender"],fb_ok:"Richtig – jedes gestalterische Element ohne Informationsgehalt reduziert das Data-Ink-Ratio und sollte entfernt werden.",fb_nok:"Die gesuchte Antwort lautet: informationstragender."},
+      {format:"mc",q:"Welcher Diagrammtyp ist für den Vergleich einer Kennzahl gegen Zielwert und Benchmark gleichzeitig am besten geeignet?",hint:"Eine Antwort ist richtig.",opts:[
+        {t:"Tortendiagramm.",correct:false,fb:"Falsch – Tortendiagramme zeigen Anteile, keine Zielvergleiche."},
+        {t:"Bullet Chart.",correct:true,fb:"Richtig – der Bullet Chart wurde speziell für den Vergleich einer Istkennzahl mit Zielwert und Benchmark entwickelt."},
+        {t:"3D-Säulendiagramm.",correct:false,fb:"Falsch – 3D-Diagramme verzerren Größenverhältnisse."},
+        {t:"Liniendiagramm.",correct:false,fb:"Falsch – Liniendiagramme zeigen Zeitreihen, keine Zielvergleiche."},
+      ]},
+      {format:"flashcard",q:"Was ist das Prinzip der präattentiven Attribute in der Dashboard-Gestaltung?",a:"Das menschliche visuelle System verarbeitet bestimmte Eigenschaften – Farbe, Größe, Position, Form – ohne bewusste Aufmerksamkeit. Diese präattentiven Attribute können gezielt eingesetzt werden: Roter RAG-Status zieht automatisch die Aufmerksamkeit an. Eine größere Schrift signalisiert Priorität. Abweichende Farbe hebt einen Balken aus einer Gruppe hervor. Diese Prinzipien ermöglichen eine schnelle Informationsaufnahme ohne zusätzlichen Text."},
+      {format:"tf",q:"Die Schwellenwerte für den RAG-Status sind branchenübergreifend standardisiert und müssen nicht unternehmensspezifisch angepasst werden.",correct:false,fb_ok:"Richtig – die Schwellenwerte sind unternehmensspezifisch. Eine Fluktuationsrate von 18 % kann für ein Gastronomieunternehmen grün und für ein Ingenieurbüro tiefrot sein.",fb_nok:"Falsch – RAG-Schwellenwerte müssen immer unternehmensspezifisch kalibriert und gemeinsam mit dem Management definiert werden."},
+      {format:"reflection",q:"Erläutern Sie, warum ein Dashboard die Frage 'Wo stehen wir?' beantwortet, aber nicht die Frage 'Warum stehen wir dort?' – und welche Konsequenz das für den richtigen Einsatz von Dashboards hat.",model:"Ein Dashboard ist ein Statusanzeiger und Frühwarnsystem. Es zeigt Abweichungen von Zielwerten und Trends – aber es erklärt keine Ursachen. Eine hohe Fluktuationsrate im Dashboard ist der Anlass für eine Diagnostic-Analytics-Untersuchung, nicht deren Ersatz. Die Konsequenz: Dashboards sollten so gestaltet sein, dass sie Fragen auslösen, nicht beantworten. Eine rote Ampel führt zum Gespräch, zur Drilldown-Analyse, zur Entscheidungsvorlage. Wer ein Dashboard als Erklärungsinstrument verwendet, überfordert es und enttäuscht die Erwartungen der Zielgruppe. Das richtige Zusammenspiel: Dashboard zeigt 'wo', Diagnostic Analytics erklärt 'warum', Entscheidungsvorlage beantwortet 'was tun'."}
+    ]
+  },
+  {
+    id:7, type:"b3",
+    title:"Storytelling mit Daten & Monetarisierung",
+    desc:"SCR-Modell, Zielgruppenorientierung, Monetarisierung, häufige Fehler",
+    tasks:[
+      {format:"mc",q:"Was beschreibt das SCR-Modell in der Datenkommunikation?",hint:"Eine Antwort ist richtig.",opts:[
+        {t:"Eine statistische Methode zur Skalierung von Daten.",correct:false,fb:"Falsch – SCR ist ein Kommunikationsmodell, keine statistische Methode."},
+        {t:"Situation – Complication – Resolution: Eine narrative Struktur, die aus Datenpräsentationen Entscheidungsvorlagen macht, indem sie Kontext, Problem und Handlungsempfehlung strukturiert verbindet.",correct:true,fb:"Richtig – das SCR-Modell (auch Minto-Pyramide) ist das Standardformat für wirkungsvolle Managementkommunikation mit Daten."},
+        {t:"Scan – Compare – Report: Ein Dashboard-Leseprozess für Führungskräfte.",correct:false,fb:"Falsch – das ist keine gängige Abkürzung."},
+        {t:"Standard – Control – Result: Ein Kennzahlensystem für HR-Berichte.",correct:false,fb:"Falsch – das ist keine Definition des SCR-Modells."},
+      ]},
+      {format:"tf",q:"Eine wirksame Datenpräsentation kann mehrere gleichwertige Kernbotschaften haben.",correct:false,fb_ok:"Richtig – wenn die Kernbotschaft sich nicht in einem Satz formulieren lässt, ist die Analyse noch nicht fertig. Eine Botschaft, nicht fünf.",fb_nok:"Falsch – jede wirksame Datenpräsentation hat eine zentrale Kernbotschaft. Mehrere gleichwertige Botschaften führen zu Unklarheit darüber, was das Publikum tun soll."},
+      {format:"matching",q:"Ordne die SCR-Elemente den richtigen Beschreibungen zu.",pairs:[
+        {left:"Situation",right:"Der gemeinsam anerkannte Ausgangspunkt – was wissen alle bereits?"},
+        {left:"Complication",right:"Die Abweichung, das Problem, der Handlungsbedarf – erzeugt die Spannung"},
+        {left:"Resolution",right:"Die Handlungsempfehlung – macht aus einem Bericht eine Entscheidungsvorlage"},
+        {left:"Kernbotschaft",right:"Ein Satz, der zusammenfasst, was das Publikum verstehen und tun soll"},
+      ]},
+      {format:"calc",q:"Berechne die jährliche Einsparung durch Reduktion der Fluktuationsrate: Aktuell 300 MA × 13 % = 39 Abgänge. Ziel: 10 % = 30 Abgänge. Kosten je Abgang: 45.000 EUR.",steps:[
+        {label:"SCHRITT 1",desc:"Aktuelle Abgänge pro Jahr (300 × 13 %)",answer:"39",unit:"Abgänge",tolerance:0},
+        {label:"SCHRITT 2",desc:"Ziel-Abgänge pro Jahr (300 × 10 %)",answer:"30",unit:"Abgänge",tolerance:0},
+        {label:"SCHRITT 3",desc:"Vermiedene Abgänge (Ist minus Ziel)",answer:"9",unit:"Abgänge",tolerance:0},
+        {label:"SCHRITT 4",desc:"Jährliche Einsparung (vermiedene Abgänge × Kosten je Abgang)",answer:"405000",unit:"EUR",tolerance:0},
+      ]},
+      {format:"scenario",scenario:"HR präsentiert dem CFO eine 30-seitige Fluktuationsanalyse mit allen verfügbaren Kennzahlen. Die letzte Folie enthält eine Liste von 12 möglichen Maßnahmen ohne Priorisierung. Der CFO sagt: 'Sehr interessant. Schicken Sie mir das als PDF.'",q:"Was ist der fundamentale Fehler in dieser Präsentation?",opts:[
+        {t:"Die Analyse ist zu kurz – mehr Daten wären überzeugender.",correct:false,fb:"Falsch – das Problem ist zu viel Information ohne Struktur, nicht zu wenig."},
+        {t:"Es fehlt eine klare Kernbotschaft, eine priorisierte Handlungsempfehlung und eine narrative Struktur, die das Management zu einer Entscheidung führt. Das Publikum zieht keine Schlüsse, weil keine Führung durch die Daten erfolgt.",correct:true,fb:"Richtig – 'Schicken Sie mir das als PDF' ist ein klassisches Signal dafür, dass die Entscheidung aufgeschoben wurde, weil kein klarer Handlungsauftrag erkennbar war."},
+        {t:"Die Präsentation sollte kürzer sein – maximal 5 Folien.",correct:false,fb:"Kürzere Präsentation wäre besser, aber das allein löst das Kernproblem nicht."},
+        {t:"Der CFO interessiert sich nicht für HR-Themen.",correct:false,fb:"Falsch – das Problem liegt in der Aufbereitung, nicht im Interesse der Führungskraft."},
+      ]},
+      {format:"fill",q:"Ergänze: Laut Harter et al. haben Unternehmenseinheiten mit hohem Mitarbeiterengagement im Vergleich zu solchen mit niedrigem Engagement eine um ______ % höhere Produktivität.",answer:"21",alt:["21"],fb_ok:"Richtig – diese Zahl aus der Gallup-Forschung macht Engagement-Investitionen rechnerisch begründbar.",fb_nok:"Die Antwort lautet 21 % – aus der Forschung von Harter et al. zur Verbindung von Engagement und Unternehmensleistung."},
+      {format:"mc",q:"Warum sollte HR-Storytelling konsequent monetarisiert werden?",hint:"Eine Antwort ist richtig.",opts:[
+        {t:"Weil finanzielle Kennzahlen objektiver sind als qualitative Daten.",correct:false,fb:"Nicht der eigentliche Grund."},
+        {t:"Weil Führungskräfte in Kosten, Erträgen und Risiken denken. Die Übersetzung von Personalkennzahlen in finanzielle Größen verschafft HR eine Stimme im strategischen Diskurs.",correct:true,fb:"Richtig – Fluktuationskosten von 630.000 EUR sind für den CFO relevanter als eine Fluktuationsrate von 14 %."},
+        {t:"Weil nur monetäre Argumente rechtlich zulässig sind.",correct:false,fb:"Falsch – es gibt keine rechtliche Anforderung zur Monetarisierung."},
+        {t:"Weil qualitative Faktoren wie Engagement sich nicht kommunizieren lassen.",correct:false,fb:"Falsch – Engagement lässt sich sehr wohl kommunizieren, aber die monetäre Übersetzung erhöht die Überzeugungskraft."},
+      ]},
+      {format:"flashcard",q:"Was sind die fünf häufigsten Fehler im HR-Storytelling?",a:"1. Der Datendump – alle Daten ohne Priorisierung zeigen, das Publikum zieht keine Schlüsse. 2. Die fehlende Botschaft – Präsentation endet mit Daten, ohne klare Empfehlung. 3. Die falsche Zielgruppe – alle bekommen dieselbe Aufbereitung. 4. Die defensiv präsentierte Analyse – zu viel Absicherung schwächt die Botschaft. 5. Der Fokus auf Vergangenheit – ausführliche Beschreibung was war, kaum Orientierung was daraus folgt."},
+      {format:"reflection",q:"Bauen Sie für folgendes Szenario eine vollständige SCR-Struktur auf: Ein Unternehmen hat eine Frühfluktuation von 38 % aller Abgänge trotz gestiegenem Recruiting-Budget. Exit-Interviews zeigen: Haupttreiber ist mangelndes Onboarding. Eine strukturierte 90-Tage-Onboarding-Programm würde 95.000 EUR kosten und die Frühfluktuation voraussichtlich um 40 % senken.",model:"Situation: Unsere Gesamtfluktuationsrate liegt seit drei Jahren stabil bei 13 %. Das Recruiting-Budget wurde erhöht. Complication: Die Frühfluktuation ist auf 38 % aller Abgänge gestiegen – fast 2 von 5 neuen Mitarbeitenden verlassen uns im ersten Jahr, trotz gestiegenem Budget. Exit-Interview-Analyse identifiziert mangelndes Onboarding als Haupttreiber. Die aktuellen Frühfluktuationskosten betragen jährlich ca. [Anzahl Frühfluktuationen × Kosten je Abgang]. Resolution: Wir empfehlen ein strukturiertes 90-Tage-Onboarding-Programm. Investition: 95.000 EUR einmalig. Erwartete Reduktion der Frühfluktuation: 40 %. Erwartete jährliche Kosteneinsparung: 312.000 EUR. ROI im ersten Jahr: 228 %. Entscheidungsbedarf: Genehmigung des Budgets und Beauftragung der Umsetzung."}
+    ]
+  },
+];
+
+const state={currentModule:null,currentTask:0,taskStates:{},moduleScores:{}};
+function taskKey(m,t){return m+"_"+t;}
+function getTS(m,t){return state.taskStates[taskKey(m,t)]||{done:false,scored:false};}
+function setTS(m,t,d,s){state.taskStates[taskKey(m,t)]={done:d,scored:s};}
+function totalTasks(){return MODULES.reduce((s,m)=>s+m.tasks.length,0);}
+function doneTasks(){return Object.values(state.taskStates).filter(t=>t.done).length;}
+function totalScore(){return Object.values(state.taskStates).filter(t=>t.scored).length;}
+function completedModules(){return MODULES.filter(m=>m.tasks.every((_,i)=>getTS(m.id,i).done)).length;}
+
+function renderHome(){
+  document.getElementById("statTotal").textContent=totalTasks();
+  document.getElementById("statDone").textContent=doneTasks();
+  document.getElementById("statScore").textContent=totalScore();
+  document.getElementById("statModules").textContent=completedModules()+"/8";
+  document.getElementById("globalBar").style.width=Math.round(doneTasks()/totalTasks()*100)+"%";
+  const grid=document.getElementById("modulesGrid");grid.innerHTML="";
+  const labels={b1:"Block 1: Reifegradmodell",b2:"Block 2: Descriptive Analytics",b3:"Block 3: Dashboards & Storytelling"};
+  MODULES.forEach(m=>{
+    const done=m.tasks.filter((_,i)=>getTS(m.id,i).done).length;
+    const scored=m.tasks.filter((_,i)=>getTS(m.id,i).scored).length;
+    const allDone=done===m.tasks.length;
+    const pct=Math.round(done/m.tasks.length*100);
+    const card=document.createElement("div");card.className="module-card";
+    card.innerHTML=`${allDone?'<div class="done-badge">&#10003; Fertig</div>':""}
+      <div class="badge badge-${m.type}">${labels[m.type]||m.type}</div>
+      <h3>${m.title}</h3><div class="desc">${m.desc}</div>
+      <div class="progress-row"><div class="mini-bar"><div class="mini-bar-fill" style="width:${pct}%"></div></div>
+      <div class="pct">${done}/${m.tasks.length} · ${scored} Pkt.</div></div>`;
+    card.onclick=()=>openModule(m.id);grid.appendChild(card);
+  });
+}
+function showResetConfirm(){document.getElementById("resetConfirm").style.display="block";}
+function hideResetConfirm(){document.getElementById("resetConfirm").style.display="none";}
+function confirmReset(){state.taskStates={};state.moduleScores={};state.currentModule=null;state.currentTask=0;hideResetConfirm();renderHome();}
+function goHome(){document.getElementById("homeScreen").classList.add("active");document.getElementById("moduleScreen").classList.remove("active");state.currentModule=null;renderHome();}
+function openModule(id){
+  state.currentModule=id;const m=MODULES[id];let start=0;
+  for(let i=0;i<m.tasks.length;i++){if(!getTS(id,i).done){start=i;break;}if(i===m.tasks.length-1)start=m.tasks.length;}
+  state.currentTask=start;
+  document.getElementById("homeScreen").classList.remove("active");document.getElementById("moduleScreen").classList.add("active");
+  document.getElementById("moduleTitle").textContent=m.title;renderTask();
+}
+function renderTask(){
+  const m=MODULES[state.currentModule];const area=document.getElementById("taskArea");
+  document.getElementById("moduleProgressText").textContent="Aufgabe "+(state.currentTask+1)+" von "+m.tasks.length;
+  if(state.currentTask>=m.tasks.length){
+    const sc=m.tasks.filter((_,i)=>getTS(m.id,i).scored).length;
+    area.innerHTML=`<div class="module-complete"><div class="trophy">&#127942;</div><h3>Modul abgeschlossen!</h3><p>Alle Aufgaben bearbeitet.</p><div class="score-display">${sc}</div><div class="score-max">von ${m.tasks.length} möglichen Punkten</div><div class="task-actions" style="justify-content:center;margin-top:24px"><button class="btn-submit" onclick="goHome()">&#8592; Zur Übersicht</button></div></div>`;return;
+  }
+  const task=m.tasks[state.currentTask];const ts=getTS(m.id,state.currentTask);
+  area.innerHTML=buildTaskHTML(task,ts.done);attachTaskEvents(task,ts.done);
+  if(task.format==="matching"&&!ts.done)setupMatching();
+}
+const typeLabels={mc:"Multiple Choice",tf:"Richtig / Falsch",matching:"Zuordnung",fill:"Lückentext",calc:"Rechenaufgabe",scenario:"Szenario-Entscheidung",flashcard:"Lernkarte",reflection:"Reflexionsfrage"};
+function buildTaskHTML(task,done){
+  let h=`<div class="task-card"><div class="task-type-label">${typeLabels[task.format]||task.format}</div>`;
+  if(task.format==="mc"||task.format==="scenario"){
+    if(task.scenario)h+=`<div class="scenario-box">${task.scenario}</div>`;
+    h+=`<div class="task-question">${task.q}</div>`;
+    if(task.hint)h+=`<div class="task-hint">${task.hint}</div>`;
+    h+=`<div class="options-list">`;
+    task.opts.forEach((o,i)=>{h+=`<div><button class="option-btn" data-idx="${i}" ${done?"disabled":""}>${o.t}</button>`;if(done)h+=`<div class="option-feedback ${o.correct?"ok":"nok"}">${o.correct?"✓":"✗"} ${o.fb}</div>`;h+=`</div>`;});
+    h+=`</div>`;
+  } else if(task.format==="tf"){
+    h+=`<div class="task-question">${task.q}</div><div class="tf-row"><button class="tf-btn" data-val="true" ${done?"disabled":""}>Richtig</button><button class="tf-btn" data-val="false" ${done?"disabled":""}>Falsch</button></div>`;
+    if(done)h+=`<div class="result-banner ${task.correct?"ok":"nok"}" style="display:block">${task.correct?task.fb_ok:task.fb_nok}</div>`;
+  } else if(task.format==="matching"){
+    h+=`<div class="task-question">${task.q}</div>`;
+    const sh=[...task.pairs].map(p=>p.right).sort(()=>Math.random()-0.5);
+    h+=`<div class="matching-area"><div class="match-left">`;
+    task.pairs.forEach((p,i)=>h+=`<div class="match-item" data-left="${i}" ${done?'style="pointer-events:none"':""}>${p.left}</div>`);
+    h+=`</div><div class="match-right">`;
+    sh.forEach((r,i)=>h+=`<div class="match-item" data-right="${i}" data-val="${r}" ${done?'style="pointer-events:none"':""}>${r}</div>`);
+    h+=`</div></div>`;
+    if(done)h+=`<div class="result-banner ok" style="display:block">Alle Zuordnungen abgeschlossen.</div>`;
+  } else if(task.format==="fill"){
+    h+=`<div class="task-question">${task.q}</div><input class="blank-input ${done?"ok":""}" id="fillInput" placeholder="Antwort eingeben…" ${done?`value="${task.answer}" disabled`:""}>`;
+    if(done)h+=`<div class="result-banner ok" style="display:block">${task.fb_ok}</div>`;
+  } else if(task.format==="calc"){
+    h+=`<div class="task-question">${task.q}</div><div class="calc-steps">`;
+    task.steps.forEach((s,i)=>{h+=`<div class="calc-step" id="cs${i}"><div class="step-label">${s.label}</div><div class="step-desc">${s.desc}</div><input type="number" id="ci${i}" placeholder="Eingabe…" ${i>0?"disabled":""} ${done?`value="${s.answer}" disabled`:""} step="any"><span style="font-size:0.85rem;color:var(--muted);margin-left:8px">${s.unit}</span>${done?`<div class="step-feedback ok" style="display:block">✓ Korrekt: ${s.answer} ${s.unit}</div>`:`<div class="step-feedback" id="cf${i}"></div>`}</div>`;});
+    h+=`</div>`;
+  } else if(task.format==="flashcard"){
+    h+=`<div class="task-question" style="margin-bottom:16px">${task.q}</div>`;
+    h+=`<div class="flashcard" id="fc" onclick="this.classList.toggle('flipped')"><div class="flashcard-inner"><div class="fc-front"><div class="fc-label">FRAGE</div><div class="fc-q">${task.q}</div><div class="fc-flip-hint">→ Klicken zum Umdrehen</div></div><div class="fc-back"><div class="fc-a">${task.a}</div></div></div></div>`;
+    if(!done)h+=`<div class="fc-rating"><button class="fc-rate-btn fc-rate-ok" onclick="scoreFC(true)">✓ Verstanden</button><button class="fc-rate-btn fc-rate-nok" onclick="scoreFC(false)">✗ Wiederholen</button></div>`;
+  } else if(task.format==="reflection"){
+    h+=`<div class="task-question">${task.q}</div><textarea class="reflection-textarea" id="rt" placeholder="Schreibe deine Antwort…" ${done?"disabled":""}></textarea>`;
+    if(!done)h+=`<div class="task-actions"><button class="btn-submit" id="smb" onclick="showModel()">Musterlösung anzeigen</button></div>`;
+    h+=`<div class="model-answer" id="ma" ${done?"style='display:block'":""}><div class="model-label">MUSTERLÖSUNG</div>${task.model}`;
+    if(done)h+=`</div>`;
+    else h+=`<div class="self-rating" id="sr" style="display:none"><div style="font-size:0.8rem;color:var(--muted);margin-bottom:8px;width:100%">Wie gut hast du es getroffen?</div><button class="self-btn" onclick="rateSelf(true)">✓ Gut getroffen</button><button class="self-btn" onclick="rateSelf(false)">Noch nicht vollständig</button></div></div>`;
+  }
+  h+=`<div class="task-actions">`;
+  if(!done&&task.format!=="flashcard"&&task.format!=="reflection"&&task.format!=="matching")h+=`<button class="btn-submit" id="sb" onclick="submitTask()">Antwort prüfen</button>`;
+  if(!done&&task.format==="matching")h+=`<button class="btn-submit" id="sb" onclick="submitMatching()">Zuordnung prüfen</button>`;
+  if(done)h+=`<button class="btn-next" style="display:inline-block" onclick="nextTask()">Nächste Aufgabe &#8594;</button>`;
+  h+=`<div class="result-banner" id="rb"></div></div>`;return h;
+}
+function attachTaskEvents(task,done){
+  if(done)return;
+  if(task.format==="mc"||task.format==="scenario"){document.querySelectorAll(".option-btn").forEach(b=>b.addEventListener("click",function(){document.querySelectorAll(".option-btn").forEach(x=>x.classList.remove("selected"));this.classList.add("selected");}));}
+  if(task.format==="tf"){document.querySelectorAll(".tf-btn").forEach(b=>b.addEventListener("click",function(){const v=this.dataset.val==="true";const ok=v===task.correct;document.querySelectorAll(".tf-btn").forEach(x=>{x.disabled=true;const bv=x.dataset.val==="true";if(bv===task.correct)x.classList.add("correct");else if(bv===v&&!ok)x.classList.add("wrong");});const ban=document.getElementById("rb");ban.style.display="block";ban.className="result-banner "+(ok?"ok":"nok");ban.textContent=(ok?"✓ ":"✗ ")+(ok?task.fb_ok:task.fb_nok);markDone(ok);showNext();}));}
+  if(task.format==="calc"){task.steps.forEach((s,i)=>{const inp=document.getElementById("ci"+i);if(!inp)return;inp.addEventListener("keydown",e=>{if(e.key==="Enter")checkCalcStep(task,i);});if(i===0)inp.addEventListener("change",()=>checkCalcStep(task,i));});}
+}
+function checkCalcStep(task,i){
+  const inp=document.getElementById("ci"+i);if(!inp||inp.disabled)return;
+  const v=parseFloat(inp.value);const ok=Math.abs(v-parseFloat(task.steps[i].answer))<=(task.steps[i].tolerance||0);
+  const fb=document.getElementById("cf"+i);
+  if(ok){inp.className="ok";if(fb){fb.className="step-feedback ok";fb.style.display="block";fb.textContent="✓ Korrekt!";}inp.disabled=true;
+    if(i+1<task.steps.length){const ni=document.getElementById("ci"+(i+1));if(ni){ni.disabled=false;ni.focus();ni.addEventListener("change",()=>checkCalcStep(task,i+1));ni.addEventListener("keydown",e=>{if(e.key==="Enter")checkCalcStep(task,i+1);});}}
+    if(i===task.steps.length-1){markDone(true);showNext();}
+  } else {inp.className="nok";if(fb){fb.className="step-feedback nok";fb.style.display="block";fb.textContent="✗ Nicht korrekt – versuche es nochmal.";}}
+}
+function setupMatching(){
+  let sl=null,sr=null;
+  document.querySelectorAll(".match-item[data-left]").forEach(l=>l.addEventListener("click",function(){document.querySelectorAll(".match-item[data-left]").forEach(x=>x.classList.remove("selected"));sl=this;this.classList.add("selected");if(sr)tryMatch();}));
+  document.querySelectorAll(".match-item[data-right]").forEach(r=>r.addEventListener("click",function(){document.querySelectorAll(".match-item[data-right]").forEach(x=>x.classList.remove("selected"));sr=this;this.classList.add("selected");if(sl)tryMatch();}));
+  function tryMatch(){sl.dataset.paired=sr.dataset.val;sl.style.background="#1e3a50";sl.innerHTML=sl.innerHTML.split(" → ")[0]+" → "+sr.dataset.val;sl.classList.remove("selected");sr.style.background="#1e3a50";sr.classList.remove("selected");sl=null;sr=null;}
+}
+function submitMatching(){
+  const task=MODULES[state.currentModule].tasks[state.currentTask];
+  const lefts=document.querySelectorAll(".match-item[data-left]");let allOk=true;
+  lefts.forEach(l=>{const idx=parseInt(l.dataset.left);const exp=task.pairs[idx].right;if(l.dataset.paired===exp)l.classList.add("matched-ok");else{l.classList.add("matched-nok");allOk=false;}});
+  markDone(allOk);const ban=document.getElementById("rb");ban.style.display="block";ban.className="result-banner "+(allOk?"ok":"nok");
+  ban.textContent=allOk?"✓ Alle Zuordnungen korrekt!":"Einige Zuordnungen sind nicht korrekt.";
+  lefts.forEach(l=>{const idx=parseInt(l.dataset.left);l.innerHTML+=` <span style="font-size:0.75rem;color:var(--correct)">→ ${task.pairs[idx].right}</span>`;});
+  showNext();
+}
+function submitTask(){
+  const task=MODULES[state.currentModule].tasks[state.currentTask];
+  if(task.format==="mc"||task.format==="scenario"){
+    const sel=document.querySelector(".option-btn.selected");if(!sel)return;
+    const idx=parseInt(sel.dataset.idx);const ok=task.opts[idx].correct;
+    document.querySelectorAll(".option-btn").forEach((b,i)=>{b.disabled=true;const fb=document.createElement("div");fb.className="option-feedback "+(task.opts[i].correct?"ok":"nok");fb.textContent=(task.opts[i].correct?"✓ ":"✗ ")+task.opts[i].fb;b.parentElement.appendChild(fb);if(task.opts[i].correct)b.classList.add("correct");else if(i===idx&&!ok)b.classList.add("wrong");});
+    markDone(ok);showNext();
+  } else if(task.format==="fill"){
+    const inp=document.getElementById("fillInput");
+    const v=inp.value.trim().toLowerCase().replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ä/g,"ae").replace(/ß/g,"ss").replace(/[²^2]/g,"2");
+    const exp=task.answer.toLowerCase().replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ä/g,"ae").replace(/ß/g,"ss").replace(/[²^2]/g,"2");
+    const alts=(task.alt||[]).map(a=>a.toLowerCase().replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ä/g,"ae").replace(/ß/g,"ss").replace(/[²^2]/g,"2"));
+    const ok=v===exp||alts.includes(v);
+    inp.className="blank-input "+(ok?"ok":"nok");inp.disabled=true;
+    const ban=document.getElementById("rb");ban.style.display="block";ban.className="result-banner "+(ok?"ok":"nok");ban.textContent=(ok?"✓ ":"✗ ")+(ok?task.fb_ok:task.fb_nok);
+    markDone(ok);showNext();
+  }
+}
+function scoreFC(ok){markDone(ok);showNext();document.querySelectorAll(".fc-rate-btn").forEach(b=>b.disabled=true);}
+function showModel(){document.getElementById("ma").style.display="block";document.getElementById("sr").style.display="flex";document.getElementById("smb").style.display="none";}
+function rateSelf(ok){markDone(ok);showNext();}
+function markDone(scored){setTS(state.currentModule,state.currentTask,true,scored);}
+function showNext(){
+  const sb=document.getElementById("sb");if(sb)sb.style.display="none";
+  const nb=document.createElement("button");nb.className="btn-next";nb.textContent="Nächste Aufgabe →";nb.style.display="inline-block";nb.onclick=nextTask;
+  const rb=document.getElementById("rb");if(rb)rb.parentElement.appendChild(nb);
+}
+function nextTask(){state.currentTask++;renderTask();}
+renderHome();
+</script>
+</body>
+</html>
